@@ -20,13 +20,10 @@ export default function Calculator({ initialNusdBalance }: { initialNusdBalance:
     nusdInfoData,
     nusdRuneData,
     btcPriceData,
+    tvl,
   } = useData();
-  let initialTotalNusd = 2000000; // Default value if totalNusd is not available
+  let initialTotalNusd = tvl || 4000000; // Default value if totalNusd is not available
   let initialBamkPrice = 0;
-  
-  if (nusdRuneData && nusdInfoData) {
-    initialTotalNusd = (2100000000000000 - Number(nusdRuneData.amount)) + Number(nusdInfoData.minted);
-  }
   
   if (magicEdenBamkData) {
     initialBamkPrice = Number(magicEdenBamkData.floorUnitPrice.formatted);
