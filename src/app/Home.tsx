@@ -295,16 +295,12 @@ async function getData() {
 		return {}
 	}
 
-
 	let apy = 0
-	if (magicEdenBamkData && nusdRuneData && btcPriceData && nusdInfoData) {
+	if (magicEdenBamkData && btcPriceData && nusdInfoData && tvl) {
 		const usdPricePerBamk =
 			(Number(magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) *
 			btcPriceData.bitcoin.usd
-		const nusdRuneCirculating = 2_100_000_000_000_000 - Number(nusdRuneData.amount)
-		const nusdBrc20Circulating = Number(nusdInfoData.minted)
-		const nusdTotalCirculating = nusdRuneCirculating + nusdBrc20Circulating
-		apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / nusdTotalCirculating
+		apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / tvl
 	}
 
 	return {

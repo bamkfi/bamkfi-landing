@@ -84,18 +84,6 @@ async function getData() {
 		}
 	 } = (await btcPrice.json());
 
-	let apy = 0
-	if (magicEdenBamkData && nusdRuneData && btcPriceData && nusdInfoData) {
-		const usdPricePerBamk =
-			(Number(magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) *
-			btcPriceData.bitcoin.usd
-		const nusdRuneCirculating = 2_100_000_000_000_000 - Number(nusdRuneData.amount)
-		const nusdBrc20Circulating = Number(nusdInfoData.minted)
-		const nusdTotalCirculating = nusdRuneCirculating + nusdBrc20Circulating
-		apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / nusdTotalCirculating
-	}
-
-
 	const nusdCirculationReq = await fetch('https://calhounjohn.com/balances/getCirculationByBlock', {
 		headers: {
 		  Authorization: `Bearer big-bamker-password`
@@ -116,6 +104,14 @@ async function getData() {
 		}
 	} catch (err) {
 		return {}
+	}
+
+	let apy = 0
+	if (magicEdenBamkData && btcPriceData && nusdInfoData && tvl) {
+		const usdPricePerBamk =
+			(Number(magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) *
+			btcPriceData.bitcoin.usd
+		apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / tvl
 	}
 	
 	return {
