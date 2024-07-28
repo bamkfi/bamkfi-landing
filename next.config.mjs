@@ -3,7 +3,7 @@ const nextConfig = {
     async redirects() {
         return [
           {
-            source: '/:path((?!api|$).*)',
+            source: '/:path((?!$).*)',
             destination: 'https://app.bamk.fi/:path*',
             permanent: false,
           }
