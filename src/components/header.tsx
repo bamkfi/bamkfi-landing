@@ -14,15 +14,15 @@ export default function Header(data: { apy: number | undefined }) {
 	const links = [
 		{
 			name: 'Swap',
-			href: '/swap'
+			href: 'https://app.bamk.fi/swap'
 		},
 		{
 			name: 'Leaderboard',
-			href: '/leaderboard'
+			href: 'https://app.bamk.fi/leaderboard'
 		},
 		{
 			name: 'Calculator',
-			href: '/calculator'
+			href: 'https://app.bamk.fi/calculator'
 		},
 		{
 			name: 'Docs',
@@ -62,14 +62,14 @@ export default function Header(data: { apy: number | undefined }) {
 				) : null}
 				<div className='flex items-center gap-2'>
 					<div>
-						<Link href="/swap">
+						<a href="https://app.bamk.fi" rel="noopener noreferrer">
 							<Button>
 								<div className="font-semibold">Launch App</div>
 							</Button>
-						</Link>
+						</a>
 					</div>
 					<div className='sm:hidden'>
-						<MobileNavigation links={[{ name: 'Home',	href: '/' }, ...links]} />
+						<MobileNavigation links={links} />
 					</div>
 				</div>
 			</div>
