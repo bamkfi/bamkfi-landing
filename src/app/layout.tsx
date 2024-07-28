@@ -22,10 +22,10 @@ export const metadata: Metadata = {
 		title: 'BAMK•OF•NAKAMOTO•DOLLAR',
 		description: 'Bitcoin synthetic dollar protcol',
 		creator: '@bamkfi',
-		images: ['https://bamkfi-fontend.vercel.app/unfurl.png']
+		images: ['/unfurl.png']
 	},
 	openGraph: {
-		images: ['https://bamkfi-fontend.vercel.app/unfurl.png']
+		images: ['/unfurl.png']
 	}
 }
 
