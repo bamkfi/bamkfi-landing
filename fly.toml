@@ -3,11 +3,11 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'bamkfi-frontend'
+app = 'bamkfi-landing'
 primary_region = 'ewr'
 
 [build]
-  dockerfile = 'Dockerfile.prod'
+  dockerfile = 'Dockerfile.landing.prod'
 
 [http_service]
   internal_port = 3000
