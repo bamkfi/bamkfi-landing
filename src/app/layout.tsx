@@ -15,6 +15,7 @@ import { Web3Provider } from "@/components/providers/Web3Provider";
 import { SEASON_1_BAMK_PER_BLOCK } from "@/lib/constants";
 
 export const metadata: Metadata = {
+	metadataBase: new URL('https://bamk.fi'),
 	title: 'BAMK•OF•NAKAMOTO•DOLLAR',
 	description: 'Bitcoin synthetic dollar protocol',
 	twitter: {
