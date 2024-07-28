@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 import Link from 'next/link'
 
@@ -10,35 +8,27 @@ import NusdIcon from '@/icons/nusd'
 import Navigation from './navigation/navigation'
 import { nunito } from './ui/fonts'
 import { Button } from './ui/button'
-import { usePathname } from 'next/navigation'
-import { Wallets } from './wallet/Wallets'
 import {MobileNavigation} from './navigation/navigation'
-import { useData } from '@/app/context/datacontext'
 
-export default function Header() {
-	const data = useData()
-	const isHomepage = usePathname() === '/'
-
-	const links = React.useMemo(() => {
-		return [
-			{
-				name: 'Swap',
-				href: '/swap'
-			},
-			{
-				name: 'Leaderboard',
-				href: '/leaderboard'
-			},
-			{
-				name: 'Calculator',
-				href: '/calculator'
-			},
-			{
-				name: 'Docs',
-				href: GITBOOK_URL
-			}
-		]
-	}, [])
+export default function Header(data: { apy: number | undefined }) {
+	const links = [
+		{
+			name: 'Swap',
+			href: '/swap'
+		},
+		{
+			name: 'Leaderboard',
+			href: '/leaderboard'
+		},
+		{
+			name: 'Calculator',
+			href: '/calculator'
+		},
+		{
+			name: 'Docs',
+			href: GITBOOK_URL
+		}
+	]
 
 	return (
 		<header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -71,17 +61,13 @@ export default function Header() {
 					</div>
 				) : null}
 				<div className='flex items-center gap-2'>
-					{isHomepage ? (
-						<div>
-							<Link href="/swap">
-								<Button>
-									<div className="font-semibold">Launch App</div>
-								</Button>
-							</Link>
-						</div>
-					) : (
-						<Wallets />
-					)}
+					<div>
+						<Link href="/swap">
+							<Button>
+								<div className="font-semibold">Launch App</div>
+							</Button>
+						</Link>
+					</div>
 					<div className='sm:hidden'>
 						<MobileNavigation links={[{ name: 'Home',	href: '/' }, ...links]} />
 					</div>
