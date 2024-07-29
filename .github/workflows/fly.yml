@@ -1,0 +1,25 @@
+name: Fly Deploy
+on:
+  push:
+    branches:
+      - main
+      - landing-deploy
+jobs:
+  deploy:
+    name: Deploy app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+          --build-arg UNISAT_API_KEY="${{ secrets.UNISAT_API_KEY }}"
+          --build-arg COINGECKO_API_KEY="${{ secrets.COINGECKO_API_KEY }}"
+          --build-arg MAGIC_EDEN_API_KEY="${{ secrets.MAGIC_EDEN_API_KEY }}"
+          --build-arg INFURA_API_KEY="${{ secrets.INFURA_API_KEY }}"
+          --build-secret UNISAT_API_KEY="${{ secrets.UNISAT_API_KEY }}"
+          --build-secret COINGECKO_API_KEY="${{ secrets.COINGECKO_API_KEY }}"
+          --build-secret MAGIC_EDEN_API_KEY="${{ secrets.MAGIC_EDEN_API_KEY }}"
+          --build-secret INFURA_API_KEY="${{ secrets.INFURA_API_KEY }}"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          

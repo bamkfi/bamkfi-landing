@@ -7,7 +7,7 @@ app = 'bamkfi-landing'
 primary_region = 'ewr'
 
 [build]
-  dockerfile = 'Dockerfile.landing.prod'
+  dockerfile = 'Dockerfile'
 
 [http_service]
   internal_port = 3000
