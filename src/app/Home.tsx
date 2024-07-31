@@ -14,21 +14,18 @@ import {
 import { MagicEdenBamkData, NusdRuneData } from '@/types'
 import { RuneNameHeading } from '@/components/ui/RuneNameHeading';
 import UsdeIcon from '@/icons/USDe';
+import NusdBackground from '@/icons/NusdBackground';
 import NusdIcon from '@/icons/nusd';
+import TwitterIcon from '@/icons/twitter';
+import TelegramIcon from '@/icons/telegram';
+import { TWITTER_URL } from '@/lib/constants';
+import { TELEGRAM_URL } from '@/lib/constants';
+import ExternalLink from '@/icons/ExternalLink';
+import { DescriptionText } from '@/components/ui/DescriptionText';
+import Timeline from '@/components/timeline/Timeline';
+import Explainer from '@/components/explainer/explainer';
 
 async function getData() {
-	const nusdInfo = await fetch('https://open-api.unisat.io/v1/indexer/brc20/$NUSD/info', {
-		headers: {
-			Authorization: `Bearer ${process.env.UNISAT_API_KEY}`
-		},
-		next: { revalidate: 600 }
-	})
-	if (!nusdInfo.ok) {
-		console.error('Error fetching nusdInfo', nusdInfo.status, nusdInfo.statusText)
-		return {}
-	}
-	const nusdInfoData: { minted: string } = (await nusdInfo.json()).data
-
 	const magicEdenBamkReq = await fetch('https://api-mainnet.magiceden.dev/v2/ord/btc/runes/market/BAMKOFNAKAMOTODOLLAR/info', {
 		headers: {
 			Authorization: `Bearer ${process.env.MAGIC_EDEN_API_KEY}`
@@ -40,23 +37,6 @@ async function getData() {
 		return {}
 	}
 	const magicEdenBamkData: MagicEdenBamkData = (await magicEdenBamkReq.json())
-
-	const nusdRune = await fetch(
-		'https://open-api.unisat.io/v1/indexer/address/bc1pg9afu20tdkmzm40zhqugeqjzl5znfdh8ndns48t0hnmn5gu7uz5saznpu9/runes/845005%3A178/balance',
-		{
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${process.env.UNISAT_API_KEY}`
-			},
-			next: { revalidate: 600 }
-		}
-	)
-	if (!nusdRune.ok) {
-		console.error('Error fetching nusdRune:', nusdRune.status, nusdRune.statusText)
-		return {}
-	}
-	const nusdRuneData: NusdRuneData = (await nusdRune.json()).data
-
 	const INFURA_API_KEY = process.env.INFURA_API_KEY
 
 	const erc20BalanceOfMethodId = keccak256('balanceOf(address)').substring(0, 10).padEnd(34, '0');
@@ -296,7 +276,7 @@ async function getData() {
 	}
 
 	let apy = 0
-	if (magicEdenBamkData && btcPriceData && nusdInfoData && tvl) {
+	if (magicEdenBamkData && btcPriceData && nusdCirculationReq) {
 		const usdPricePerBamk =
 			(Number(magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) *
 			btcPriceData.bitcoin.usd
@@ -304,8 +284,7 @@ async function getData() {
 	}
 
 	return {
-		nusdInfoData,
-		nusdRuneData,
+		nusdCirculationReq,
 		magicEdenBamkData,
 		susdeBackingUSDValue,
 		btcPriceData,
@@ -314,126 +293,85 @@ async function getData() {
 	}
 }
 
+const formatTVL = (value: number): string => {
+	if (value >= 1_000_000_000) {
+	  return `${(value / 1_000_000_000).toFixed(1)}b`;
+	} else if (value >= 100_000_000) {
+	  return `${(value / 1_000_000).toFixed(1)}m`;
+	} else if (value >= 1_000_000) {
+	  return `${(value / 1_000_000).toFixed(2)}m`;
+	}
+	return value.toLocaleString();
+};
+
 export default async function Home() {
 	const data = await getData()
 	return (
-        <div className="flex flex-col h-full">
-			<div className="flex-grow">    
-				<div className="max-w-screen-xl container flex flex-col gap-8 mt-8">
-					<div className="flex flex-col gap-4 md:ml-12">
-						<RuneNameHeading>BAMK•OF•NAKAMOTO•DOLLAR</RuneNameHeading>
-						{data?.magicEdenBamkData ? (
-							<div className="flex gap-2 flex-wrap -mt-2">
-								<div
-									title="BAMK Price"
-									className="bg-primary/5 flex text-sm gap-2 px-4 rounded-md h-10 items-center w-max mt-1"
-								>
-									<p>
-										<span className="text-primary">{Number(data.magicEdenBamkData.floorUnitPrice.formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })} sats</span>
-										{' / 🏦'}
-									</p>
-								</div>
-								<div
-									title="Market Cap (Circulating Supply)"
-									className="bg-primary/5 flex text-sm gap-2 px-4 rounded-md h-10 items-center w-max mt-1"
-								>
-									<p>🏦 MCAP</p>
-									<p className="text-primary font-bold">
-										{`$${(
-											Number(data.magicEdenBamkData.marketCap) * data.btcPriceData.bitcoin.usd *
-											(1 - BAMK_PREMINED_SUPPLY / BAMK_TOTAL_SUPPLY)
-										).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
-									</p>
-								</div>
-								<div
-									title="Fully Diluted Valuation"
-									className="bg-primary/5 flex text-sm gap-2 px-4 rounded-md h-10 items-center w-max mt-1"
-								>
-									<p>🏦 FDV</p>
-									<p className="text-primary font-bold">
-										{`$${(Number(data.magicEdenBamkData.marketCap) * data.btcPriceData.bitcoin.usd).toLocaleString(undefined, {
-											maximumFractionDigits: 0
-										})}`}
-									</p>
-								</div>
-								{data.tvl && data.tvl > 0 && data.tvl < 1_000_000_000_000_000 ? (
-									<div
-										title="Total Value Locked"
-										className="bg-primary/5 flex text-sm gap-2 px-4 rounded-md h-10 items-center w-max mt-1"
-									>
-										<div className="bg-[#F7931A] p-[0.4rem] rounded-full">
-										<NusdIcon height={14} width={14} className="stroke-primary" />
-										</div>
-										<p>TVL</p>
-										<p className="text-primary font-bold">${data.tvl.toLocaleString()}</p>
-									</div>
-								) : null}
-								{data.susdeBackingUSDValue > 0 && (
-									<a
-										href={`https://www.oklink.com/eth/token/${ETHENA_SUSDE_TOKEN_CONTRACT}?address=${ETHENA_BACKING_ACCOUNT}`}
-										className="cursor-pointer"
-										target="_blank"
-										rel="noopener noreferrer"
-									>
-										<div
-											title="Backed by Ethena USDe/sUSDe"
-											className="bg-primary/5 flex text-sm gap-2 px-4 rounded-md h-10 items-center w-max mt-1"
-										>
-											<UsdeIcon height={27} width={27} className="stroke-primary" />
-											<p>USDe Reserves</p>
-											<p className="text-primary font-bold">
-												$
-												{data.susdeBackingUSDValue.toLocaleString(undefined, {
-													maximumFractionDigits: 0
-												})}
-											</p>
-										</div>
-									</a>
-								)}
-								{data.apy && data.apy > 0.01 ? (
-									<div
-										title="Annual Percentage Yield"
-										className="bg-primary/5 text-sm gap-2 px-4 rounded-md h-10 items-center flex mt-1 lg:hidden"
-									>
-										<div className="bg-[#F7931A] p-[0.4rem] rounded-full">
-											<NusdIcon height={14} width={14} className="stroke-primary" />
-										</div>
-										<p>APY</p>
-										<p className="text-primary font-bold">
-											{`${(data.apy * 100).toLocaleString(undefined, { maximumFractionDigits: 1 })}%`}
-										</p>
-									</div>
-								) : null}
-							</div>
-						) : null}
-						<h2 className="max-w-full w-[612px] leading-7">
-							Bamk.fi is a synthetic dollar protocol built on Bitcoin L1 providing a crypto-native
-							solution for money not reliant on the traditional banking system, alongside a globally
-							accessible dollar-denominated savings instrument — the Bitcoin&nbsp;Bond.
-						</h2>
-						<div className="flex flex-wrap gap-3 max-w-full sm:w-[612px]">
-							<a
-								href={BAMK_MARKET_URL}
-								target="_blank"
-								rel="noopener noreferrer"
-								className='flex-grow'
-							>
-								<Button className="w-full h-14 text-lg">Buy BAMK</Button>
-							</a>
-							<a
-								href={"https://www.dotswap.app/swap#R_BTC_NUSD%E2%80%A2NUSD%E2%80%A2NUSD%E2%80%A2NUSD"}
-								target="_blank"
-								rel="noopener noreferrer"
-								className='flex-grow'
-							>
-								<Button className="w-full h-14 text-lg" variant="secondary">
-									Buy NUSD
-								</Button>
-							</a>
-						</div>
-					</div>
+	  <div className="relative flex flex-col">
+		<div className="top-section relative flex items-center justify-center" style={{ height: 'calc(100vh - 80px)' }}>
+		  <div className="max-w-screen-2xl container px-0 mx-0">
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-8 relative">
+			  <div className="flex flex-col gap-8">
+				<div className="flex flex-col gap-0 md:ml-20 my-0 py-0">
+				  <RuneNameHeading>NUSD:</RuneNameHeading>
+				  <RuneNameHeading>BITCOIN'S DOLLAR</RuneNameHeading>
+				  <div className="mt-8">
+					<DescriptionText>The world's leading Bitcoin dollar on the</DescriptionText>
+					<DescriptionText>oldest most secure blockchain</DescriptionText>
+				  </div>
+				   <div className="flex flex-wrap gap-3 max-w-full mx-8 xs:mx-8 sm:mx-8 sm:w-[536px] mt-8 2xl:mx-0 xl:mx-0 lg:mx-0 md:ml-0">
+				 	<a href={BAMK_MARKET_URL} target="_blank" rel="noopener noreferrer" className='flex-grow'>
+				 	  <Button className="w-full h-14 text-lg font-bold">GET NUSD</Button>
+				 	</a>
+				 	<a href={"https://example.com"} target="_blank" rel="noopener noreferrer" className='flex-grow'>
+				 	  <Button className="w-full h-14 text-lg font-bold px-4" variant="hollow">
+				 		LEARN HOW NUSD WORKS &nbsp;
+				 		<ExternalLink />
+				 	  </Button>
+				 	</a>
+				   </div>
+				   {data.apy && data.apy > 0.01 ? (
+				 	<div title="Annual Percentage Yield" className="bg-primary/5 text-sm gap-2 px-4 rounded-md h-10 items-center flex mt-1">
+				 	  <div className="bg-[#F7931A] p-[0.4rem] rounded-full">
+				 		<NusdIcon height={14} width={14} className="stroke-primary" />
+				 	  </div>
+				 	  <p>APY</p>
+				 	  <p className="text-primary font-bold">
+				 		{`${(data.apy * 100).toLocaleString(undefined, { maximumFractionDigits: 1 })}%`}
+				 	  </p>
+				 	</div>
+					//todo: add as part of another component referred from figma
+				   ) : null}
 				</div>
-        	</div>
-        </div>
-	)
+			  </div>
+			  <div>
+			   <div className="hidden lg:flex items-center justify-center relative top-10">
+				<NusdBackground className="absolute right-0 top-0 h-auto w-80 opacity-10" />
+			   </div>
+			  </div>
+			</div>
+		  </div>
+		<div className="absolute bottom-3 right-3 mx-3">
+			<div className="flex gap-4">
+			  <a href={TWITTER_URL} target="_blank" rel="noopener noreferrer">
+			    <Button variant="ghost" size="icon">
+			      <TwitterIcon className="h-6 w-6 fill-foreground/60 hover:fill-foreground/80" />
+			    </Button>
+			  </a>
+			  <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+			    <Button variant="ghost" size="icon">
+			      <TelegramIcon className="h-6 w-6 fill-foreground/60 hover:fill-foreground/80" />
+			    </Button>
+			  </a>
+			</div>
+		</div>
+		</div>
+		<div>
+		  <Timeline />
+		</div>
+		<div>
+		  <Explainer />
+		</div>
+	  </div>
+	);
 }

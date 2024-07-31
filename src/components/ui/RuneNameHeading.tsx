@@ -1,10 +1,10 @@
 import classNames from 'classnames'
 import styles from './RuneNameHeading.module.css'
-import { nunito } from './fonts'
+import { mulish } from './fonts'
 
 export function RuneNameHeading({ children }: { children: string }) {
     return (
-        <h1 className={classNames(nunito.className, styles.wrapper)}>
+        <h1 className={classNames(mulish.className, styles.wrapper)}>
             {children}
         </h1>
     )

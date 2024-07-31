@@ -1,0 +1,32 @@
+.wrapper {
+  font-size: clamp(12px, 3vw, 24px);
+  overflow-wrap: normal;
+  height: min-content;
+  padding: 0%;
+  margin: 0%;
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 1;
+  color: #F3E9DD99;
+  text-align: left;
+  padding-top: 1em;
+  line-height: 150%;
+}
+
+.wrapper a {
+  color: #f3e9ddd8;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.wrapper a:hover {
+  color: #f3e9dd;
+  text-decoration: underline;
+}
+
+
+@media (max-width: 1024px) {
+  .wrapper {
+    padding-left: 2rem;
+  }
+}
