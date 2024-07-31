@@ -24,6 +24,7 @@ import ExternalLink from '@/icons/ExternalLink';
 import { DescriptionText } from '@/components/ui/DescriptionText';
 import Timeline from '@/components/timeline/Timeline';
 import Explainer from '@/components/explainer/explainer';
+import Rewards from '@/components/rewards/rewards';
 
 async function getData() {
 	const magicEdenBamkReq = await fetch('https://api-mainnet.magiceden.dev/v2/ord/btc/runes/market/BAMKOFNAKAMOTODOLLAR/info', {
@@ -330,18 +331,6 @@ export default async function Home() {
 				 	  </Button>
 				 	</a>
 				   </div>
-				   {data.apy && data.apy > 0.01 ? (
-				 	<div title="Annual Percentage Yield" className="bg-primary/5 text-sm gap-2 px-4 rounded-md h-10 items-center flex mt-1">
-				 	  <div className="bg-[#F7931A] p-[0.4rem] rounded-full">
-				 		<NusdIcon height={14} width={14} className="stroke-primary" />
-				 	  </div>
-				 	  <p>APY</p>
-				 	  <p className="text-primary font-bold">
-				 		{`${(data.apy * 100).toLocaleString(undefined, { maximumFractionDigits: 1 })}%`}
-				 	  </p>
-				 	</div>
-					//todo: add as part of another component referred from figma
-				   ) : null}
 				</div>
 			  </div>
 			  <div>
@@ -372,6 +361,11 @@ export default async function Home() {
 		<div>
 		  <Explainer />
 		</div>
+		<div>
+    	  {data.apy && data.apy > 0.01 && (
+    	    <Rewards apy={data.apy * 100} />
+    	  )}
+    	</div>
 	  </div>
 	);
 }

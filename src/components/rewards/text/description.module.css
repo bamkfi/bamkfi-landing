@@ -1,17 +1,16 @@
 .wrapper {
-  font-size: clamp(12px, 3vw, 24px);
+  font-size: clamp(9px, 3vw, 18px);
+  overflow-wrap: normal;
   height: min-content;
   padding: 0%;
   margin: 0%;
   margin-top: 0;
   margin-bottom: 0;
-  line-height: 1.5;
+  line-height: 1;
   color: #F3E9DD99;
-  text-align: left;
-  padding-top: 0em;
-  line-height: 150%;
-  white-space: nowrap;
-  overflow-x: hidden;
+  text-align: center;
+  padding-top: 1em;
+  line-height: 100%;
 }
 
 .wrapper a {
@@ -25,8 +24,8 @@
   text-decoration: underline;
 }
 
+
 @media (max-width: 1024px) {
   .wrapper {
-    padding-left: 0;
   }
 }
