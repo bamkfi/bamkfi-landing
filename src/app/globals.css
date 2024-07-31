@@ -29,7 +29,7 @@
   }
 
   .dark {
-    --background: 0 5% 12%;
+    --background: 0 0% 0%;
     --foreground: 33 48% 91%;
     --card: 24 9.8% 10%;
     --card-foreground: 0 0% 95%;
@@ -61,5 +61,20 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+.top-section {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .top-section {
+    height: auto;
+    padding-top: 3rem;
+    align-items: flex-start;
   }
 }
