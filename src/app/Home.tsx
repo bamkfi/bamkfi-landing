@@ -25,6 +25,7 @@ import { DescriptionText } from '@/components/ui/DescriptionText';
 import Timeline from '@/components/timeline/Timeline';
 import Explainer from '@/components/explainer/explainer';
 import Rewards from '@/components/rewards/rewards';
+import FAQ from '@/components/faq/faq';
 
 async function getData() {
 	const magicEdenBamkReq = await fetch('https://api-mainnet.magiceden.dev/v2/ord/btc/runes/market/BAMKOFNAKAMOTODOLLAR/info', {
@@ -366,6 +367,9 @@ export default async function Home() {
     	    <Rewards apy={data.apy * 100} />
     	  )}
     	</div>
+		<div>
+		  <FAQ />
+		</div>
 	  </div>
 	);
 }

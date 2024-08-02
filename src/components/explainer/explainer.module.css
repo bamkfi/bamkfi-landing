@@ -108,6 +108,7 @@
 
 @media (max-width: 480px) {
   .container {
+    padding-top: 64px;
     padding-left: 8px;
     padding-right: 8px;
     grid-template-columns: 1fr;
