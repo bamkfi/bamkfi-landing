@@ -1,26 +1,39 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // https://docs.family.co/connectkit/getting-started#getting-started-nextjs
-    webpack: (config) => {
-        config.resolve.fallback = { fs: false, net: false, tls: false };
-        return config;
-    },
     async redirects() {
         return [
           {
-            source: '/mint',
-            destination: '/swap/mint',
+            source: '/api/:path*',
+            destination: 'https://app.bamk.fi/api/:path*',
+            permanent: false,
+          },
+          {
+            source: '/calculator',
+            destination: 'https://app.bamk.fi/calculator',
+            permanent: false,
+          },
+          {
+            source: '/leaderboard',
+            destination: 'https://app.bamk.fi/leaderboard',
             permanent: false,
           },
           {
             source: '/swap',
-            destination: '/swap/mint',
+            destination: 'https://app.bamk.fi/swap',
             permanent: false,
           },
+          {
+            source: '/mint',
+            destination: 'https://app.bamk.fi/swap/mint',
+            permanent: false,
+          },
+          {
+            source: '/swap/:path',
+            destination: 'https://app.bamk.fi/swap',
+            permanent: false,
+          },
+          
         ];
-      },
-      experimental: {
-        missingSuspenseWithCSRBailout: false, // https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
       },
 };
 

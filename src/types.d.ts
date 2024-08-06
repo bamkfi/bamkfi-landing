@@ -1,8 +1,3 @@
-export interface Reward {
-    address: string;
-    amount: number;
-}
-
 export interface BtcPriceData {
     bitcoin: {
         usd: number;
@@ -53,5 +48,3 @@ export interface NusdRuneData {
     "spacedRune": string,
     "symbol": string,
 }
-
-declare module 'connectkit-next-siwe';

@@ -29,10 +29,15 @@ RUN yarn install --frozen-lockfile --production=false
 # Copy application code
 COPY --link . .
 
-# TODO: INJECT BUILD ARGS FROM ENV HERE:
-# ----------------------------
-#
-# ----------------------------
+ARG UNISAT_API_KEY
+ARG COINGECKO_API_KEY
+ARG MAGIC_EDEN_API_KEY
+ARG INFURA_API_KEY
+
+ENV UNISAT_API_KEY=$UNISAT_API_KEY
+ENV COINGECKO_API_KEY=$COINGECKO_API_KEY
+ENV MAGIC_EDEN_API_KEY=$MAGIC_EDEN_API_KEY
+ENV INFURA_API_KEY=$INFURA_API_KEY
 
 # Build application
 RUN yarn run build
