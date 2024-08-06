@@ -7,6 +7,7 @@ import classNames from 'classnames'
 import { mulish } from "@/components/ui/fonts";
 
 export const metadata: Metadata = {
+	metadataBase: new URL('https://bamk.fi'),
 	title: 'BAMK•OF•NAKAMOTO•DOLLAR',
 	description: 'Bitcoin synthetic dollar protocol',
 	twitter: {

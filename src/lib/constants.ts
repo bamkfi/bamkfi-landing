@@ -1,5 +1,6 @@
 export const TWITTER_URL = 'https://x.com/bamkfi'
 export const TELEGRAM_URL = 'https://t.me/bamkfi'
+export const COINGECKO_URL = 'https://www.coingecko.com/coins/bamk-of-nakamoto-dollar'
 export const GITHUB_URL = 'https://github.com/bamkfi'
 export const GITBOOK_URL = 'https://docs.bamk.fi'
 export const BAMK_MARKET_URL = 'https://magiceden.io/runes/BAMK%E2%80%A2OF%E2%80%A2NAKAMOTO%E2%80%A2DOLLAR'
@@ -8,7 +9,6 @@ export const SEASON_1_TOTAL_BLOCKS = 41_972;
 export const BAMK_TOTAL_SUPPLY = 21_000_000_000;
 export const BAMK_PREMINED_SUPPLY = 19_688_375_000;
 export const ETHENA_BACKING_ACCOUNT = '0xA284e606624e60d5e218cC2061bd85eD3E4f073f';
-export const BACKING_ACCOUNT_2 = '0xC9d4E02e2017bBDEe2bF50971CADBfC82fc33bbE';
 export const ETHENA_SUSDE_TOKEN_CONTRACT = '0x9D39A5DE30e57443BfF2A8307A4256c8797A3497';
 export const USDF_CONTRACT_ADDRESS_SEPOLIA = '0x214056de4728BFfa28833fD258631C499D5042b9';
 export const USDE_CONTRACT_ADDRESS_MAINNET = '0x4c9EDD5852cd905f086C759E8383e09bff1E68B3';
