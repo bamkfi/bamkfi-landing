@@ -28,8 +28,13 @@ const nextConfig = {
             permanent: false,
           },
           {
+            source: '/redeem',
+            destination: 'https://app.bamk.fi/swap/redeem',
+            permanent: false,
+          },
+          {
             source: '/swap/:path',
-            destination: 'https://app.bamk.fi/swap',
+            destination: 'https://app.bamk.fi/swap/:path*',
             permanent: false,
           },
           
