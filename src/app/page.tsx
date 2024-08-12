@@ -440,7 +440,7 @@ export default async function Home() {
 							</a>
 							<a
 								href={
-									'https://www.dotswap.app/swap#R_BTC_NUSD%E2%80%A2NUSD%E2%80%A2NUSD%E2%80%A2NUSD'
+									'https://www.okx.com/web3/marketplace/runes/token/NUSD%E2%80%A2NUSD%E2%80%A2NUSD%E2%80%A2NUSD/845005:178'
 								}
 								target="_blank"
 								rel="noopener noreferrer"
