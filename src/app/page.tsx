@@ -440,10 +440,8 @@ export default async function Home() {
 							</a>
 							<a
 								href={
-									'https://www.okx.com/web3/marketplace/runes/token/NUSD%E2%80%A2NUSD%E2%80%A2NUSD%E2%80%A2NUSD/845005:178'
+									'https://app.bamk.fi/swap'
 								}
-								target="_blank"
-								rel="noopener noreferrer"
 								className="flex-grow"
 								>
 								<Button className="w-full h-14 text-lg" variant="secondary">

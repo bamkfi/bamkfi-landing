@@ -1,0 +1,47 @@
+name: Fly Deploy Preview
+on:
+  push:
+    branches-ignore:
+      - main
+jobs:
+  deploy:
+    name: Deploy app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app variables
+        shell: bash
+        run: echo "app_name=bamkfi-landing-preview-${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: gen_app_vars
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Generate deploy command
+        id: gen_deploy_cmd
+        run: |
+          if flyctl status --app "${{ steps.gen_app_vars.outputs.app_name }}"; then
+            echo "deploy_cmd=flyctl deploy --app ${{ steps.gen_app_vars.outputs.app_name }} -y" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_cmd=flyctl launch --name ${{ steps.gen_app_vars.outputs.app_name }} -y" >> $GITHUB_OUTPUT
+          fi
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - run: ${{ steps.gen_deploy_cmd.outputs.deploy_cmd }}
+          --build-arg UNISAT_API_KEY="${{ secrets.UNISAT_API_KEY }}"
+          --build-arg COINGECKO_API_KEY="${{ secrets.COINGECKO_API_KEY }}"
+          --build-arg MAGIC_EDEN_API_KEY="${{ secrets.MAGIC_EDEN_API_KEY }}"
+          --build-arg INFURA_API_KEY="${{ secrets.INFURA_API_KEY }}"
+          --build-secret UNISAT_API_KEY="${{ secrets.UNISAT_API_KEY }}"
+          --build-secret COINGECKO_API_KEY="${{ secrets.COINGECKO_API_KEY }}"
+          --build-secret MAGIC_EDEN_API_KEY="${{ secrets.MAGIC_EDEN_API_KEY }}"
+          --build-secret INFURA_API_KEY="${{ secrets.INFURA_API_KEY }}"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - run: flyctl scale count 1 --app ${{ steps.gen_app_vars.outputs.app_name }} -y
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - run: flyctl secrets set --app ${{ steps.gen_app_vars.outputs.app_name }} 
+          UNISAT_API_KEY="${{ secrets.UNISAT_API_KEY }}"
+          COINGECKO_API_KEY="${{ secrets.COINGECKO_API_KEY }}"
+          MAGIC_EDEN_API_KEY="${{ secrets.MAGIC_EDEN_API_KEY }}"
+          INFURA_API_KEY="${{ secrets.INFURA_API_KEY }}"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
