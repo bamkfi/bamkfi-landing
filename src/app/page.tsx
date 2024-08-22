@@ -9,6 +9,7 @@ import {
 	SEASON_1_BAMK_PER_BLOCK,
 	USDT_CONTRACT_ADDRESS_MAINNET,
 	USDE_CONTRACT_ADDRESS_MAINNET,
+	ETHENA_BACKING_ACCOUNT_2,
 } from '@/lib/constants'
 import { MagicEdenBamkData, NusdRuneData } from '@/types'
 import { RuneNameHeading } from '@/components/ui/RuneNameHeading'
@@ -57,25 +58,28 @@ async function getData() {
 	const erc20BalanceOfMethodId = keccak256('balanceOf(address)')
 		.substring(0, 10)
 		.padEnd(34, '0')
-	const usdeBackingResponse = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			jsonrpc: '2.0',
-			method: 'eth_call',
-			params: [
-				{
-					to: USDE_CONTRACT_ADDRESS_MAINNET,
-					data: erc20BalanceOfMethodId + ETHENA_BACKING_ACCOUNT.substring(2)
-				},
-				'latest'
-			],
-			id: 1
-		}),
-		next: { revalidate: 600 }
-	})
+	function getErc20Balance(address: string, contract: string) {
+		return fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				jsonrpc: '2.0',
+				method: 'eth_call',
+				params: [
+					{
+						to: contract,
+						data: erc20BalanceOfMethodId + address.substring(2)
+					},
+					'latest'
+				],
+				id: 1
+			}),
+			next: { revalidate: 600 }
+		})
+	}
+	const usdeBackingResponse = await getErc20Balance(ETHENA_BACKING_ACCOUNT, USDE_CONTRACT_ADDRESS_MAINNET)
 	if (!usdeBackingResponse.ok) {
 		console.error(
 			'Error fetching usdeBacking',
@@ -83,7 +87,17 @@ async function getData() {
 			usdeBackingResponse.statusText
 		)
 	}
-	const usdeBalance = BigInt((await usdeBackingResponse.json()).result) / BigInt(10 ** 18)
+	const usdeBackingAmount = BigInt((await usdeBackingResponse.json()).result) / BigInt(10 ** 18)
+	const usdeBacking2Response = await getErc20Balance(ETHENA_BACKING_ACCOUNT_2, USDE_CONTRACT_ADDRESS_MAINNET)
+	if (!usdeBacking2Response.ok) {
+		console.error(
+			'Error fetching usdeBacking2',
+			usdeBacking2Response.status,
+			usdeBacking2Response.statusText
+		)
+	}
+	const usdeBacking2Amount = BigInt((await usdeBacking2Response.json()).result) / BigInt(10 ** 18)
+	const usdeBalance = usdeBackingAmount + usdeBacking2Amount 
 	const usdePrice = await fetch(
 		'https://api.coingecko.com/api/v3/simple/price?ids=ethena-usde&vs_currencies=usd',
 		{
@@ -104,33 +118,25 @@ async function getData() {
 		}
 	} = await usdePrice.json()
 
-	const usdtBackingResponse = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			jsonrpc: '2.0',
-			method: 'eth_call',
-			params: [
-				{
-					to: USDT_CONTRACT_ADDRESS_MAINNET,
-					data: erc20BalanceOfMethodId + ETHENA_BACKING_ACCOUNT.substring(2)
-				},
-				'latest'
-			],
-			id: 1
-		}),
-		next: { revalidate: 600 }
-	})
+	const usdtBackingResponse = await getErc20Balance(ETHENA_BACKING_ACCOUNT, USDT_CONTRACT_ADDRESS_MAINNET)
 	if (!usdtBackingResponse.ok) {
 		console.error(
-			'Error fetching usdeBacking',
-			usdeBackingResponse.status,
-			usdeBackingResponse.statusText
+			'Error fetching usdtBacking',
+			usdtBackingResponse.status,
+			usdtBackingResponse.statusText
 		)
 	}
-	const usdtBalance = BigInt((await usdtBackingResponse.json()).result) / BigInt(10 ** 6)
+	const usdtBackingAmount = BigInt((await usdtBackingResponse.json()).result) / BigInt(10 ** 6)
+	const usdtBacking2Response = await getErc20Balance(ETHENA_BACKING_ACCOUNT_2, USDT_CONTRACT_ADDRESS_MAINNET)
+	if (!usdtBacking2Response.ok) {
+		console.error(
+			'Error fetching usdtBacking2',
+			usdtBacking2Response.status,
+			usdtBacking2Response.statusText
+		)
+	}
+	const usdtBacking2Amount = BigInt((await usdtBacking2Response.json()).result) / BigInt(10 ** 6)
+	const usdtBalance = usdtBackingAmount + usdtBacking2Amount 
 	const usdtPrice = await fetch(
 		'https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd',
 		{
@@ -248,7 +254,6 @@ async function getData() {
 	const usdtValue = usdtPriceData['tether'].usd * Number(usdtBalance)
 	const usdeUnstakingValue = usdePriceData['ethena-usde'].usd * usdeUnstakingBalance
 	const backingUSDValue = susdeValue + usdeValue + usdeUnstakingValue + usdtValue
-	// Log the values inside a console group
 	console.group('Backing USD Value Details');
 	console.log('susdeValue:', susdeValue);
 	console.log('usdeValue:', usdeValue);
