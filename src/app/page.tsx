@@ -251,13 +251,13 @@ async function getData() {
 		}
 	} = await susdePrice.json()
 
-	let usdeUnstakingBalance = 0
+	let usdeUnstaking1Balance = 0
 	const methodSignature = 'cooldowns(address)'
 	const methodId = keccak256(methodSignature).substring(0, 10)
 	const paddedAddress = ETHENA_BACKING_ACCOUNT.toLowerCase()
 		.replace('0x', '')
 		.padStart(64, '0')
-	const susdeUnstakingResponse = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
+	const susdeUnstaking1Response = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'
@@ -277,29 +277,72 @@ async function getData() {
 		next: { revalidate: 600 }
 	})
 
-	if (!susdeUnstakingResponse.ok) {
+	if (!susdeUnstaking1Response.ok) {
 		console.error(
 			'Error fetching susdeUnstakingResponse',
-			susdeUnstakingResponse.status,
-			susdeUnstakingResponse.statusText
+			susdeUnstaking1Response.status,
+			susdeUnstaking1Response.statusText
 		)
 		return {}
 	}
-	const responseJson = await susdeUnstakingResponse.json()
+	const responseJson = await susdeUnstaking1Response.json()
 	const result = responseJson.result
 	if (result) {
 		const cooldownEndDate = new Date(Number(hexToNumberString(result.slice(0, 66))) * 1000)
 		const underlyingAmount = hexToNumberString('0x' + result.slice(66))
-		usdeUnstakingBalance = Number(underlyingAmount) / 10 ** 18
+		usdeUnstaking1Balance = Number(underlyingAmount) / 10 ** 18
 	} else {
 		console.error('Error fetching cooldown amount', responseJson)
+		return {}
+	}
+
+	let usdeUnstaking3Balance = 0
+	const paddedAddress3 = ETHENA_BACKING_ACCOUNT_3.toLowerCase()
+		.replace('0x', '')
+		.padStart(64, '0')
+	const susdeUnstaking3Response = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			jsonrpc: '2.0',
+			method: 'eth_call',
+			params: [
+				{
+					to: ETHENA_SUSDE_TOKEN_CONTRACT,
+					data: `${methodId}${paddedAddress3}`
+				},
+				'latest'
+			],
+			id: 3
+		}),
+		next: { revalidate: 600 }
+	})
+
+	if (!susdeUnstaking3Response.ok) {
+		console.error(
+			'Error fetching susdeUnstaking3Response',
+			susdeUnstaking3Response.status,
+			susdeUnstaking3Response.statusText
+		)
+		return {}
+	}
+	const response3Json = await susdeUnstaking3Response.json()
+	const result3 = response3Json.result
+	if (result3) {
+		const cooldownEndDate = new Date(Number(hexToNumberString(result3.slice(0, 66))) * 1000)
+		const underlyingAmount = hexToNumberString('0x' + result3.slice(66))
+		usdeUnstaking3Balance = Number(underlyingAmount) / 10 ** 18
+	} else {
+		console.error('Error fetching cooldown3 amount', response3Json)
 		return {}
 	}
 
 	const susdeValue = susdePriceData['ethena-staked-usde'].usd * Number(susdeBalance)
 	const usdeValue = usdePriceData['ethena-usde'].usd * Number(usdeBalance)
 	const usdtValue = usdtPriceData['tether'].usd * Number(usdtBalance)
-	const usdeUnstakingValue = usdePriceData['ethena-usde'].usd * usdeUnstakingBalance
+	const usdeUnstakingValue = usdePriceData['ethena-usde'].usd * (usdeUnstaking1Balance + usdeUnstaking3Balance)
 	const backingUSDValue = susdeValue + usdeValue + usdeUnstakingValue + usdtValue
 	console.group('Backing USD Value Details');
 	console.log('susdeValue:', susdeValue);
