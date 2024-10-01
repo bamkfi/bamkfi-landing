@@ -11,6 +11,7 @@ import {
 	USDE_CONTRACT_ADDRESS_MAINNET,
 	ETHENA_BACKING_ACCOUNT_2,
 	ETHENA_BACKING_ACCOUNT_3,
+	ETHENA_BACKING_ACCOUNT_4,
 } from '@/lib/constants'
 import { MagicEdenBamkData, NusdRuneData } from '@/types'
 import { RuneNameHeading } from '@/components/ui/RuneNameHeading'
@@ -110,7 +111,17 @@ async function getData() {
 		return {}
 	}
 	const usdeBacking3Amount = BigInt((await usdeBacking3Response.json()).result) / BigInt(10 ** 18)
-	const usdeBalance = usdeBackingAmount + usdeBacking2Amount + usdeBacking3Amount
+	const usdeBacking4Response = await getErc20Balance(ETHENA_BACKING_ACCOUNT_4, USDE_CONTRACT_ADDRESS_MAINNET)
+	if (!usdeBacking4Response.ok) {
+		console.error(
+			'Error fetching usdeBacking4',
+			usdeBacking4Response.status,
+			usdeBacking4Response.statusText
+		)
+		return {}
+	}
+	const usdeBacking4Amount = BigInt((await usdeBacking4Response.json()).result) / BigInt(10 ** 18)
+	const usdeBalance = usdeBackingAmount + usdeBacking2Amount + usdeBacking3Amount + usdeBacking4Amount
 	const usdePrice = await fetch(
 		'https://api.coingecko.com/api/v3/simple/price?ids=ethena-usde&vs_currencies=usd',
 		{
@@ -200,7 +211,6 @@ async function getData() {
 		return {}
 	}
 	const susde1Balance = BigInt((await susdeBacking1Response.json()).result) / BigInt(10 ** 18)
-
 	const susdeBacking3Response = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
 		method: 'POST',
 		headers: {
@@ -222,7 +232,7 @@ async function getData() {
 	})
 	if (!susdeBacking3Response.ok) {
 		console.error(
-			'Error fetching susdeBacking',
+			'Error fetching susdeBacking3',
 			susdeBacking3Response.status,
 			susdeBacking3Response.statusText
 		)
@@ -230,7 +240,36 @@ async function getData() {
 	}
 	const susde3Balance = BigInt((await susdeBacking3Response.json()).result) / BigInt(10 ** 18)
 
-	const susdeBalance = susde1Balance + susde3Balance;
+	const susdeBacking4Response = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			jsonrpc: '2.0',
+			method: 'eth_call',
+			params: [
+				{
+					to: ETHENA_SUSDE_TOKEN_CONTRACT,
+					data: erc20BalanceOfMethodId + ETHENA_BACKING_ACCOUNT_4.substring(2)
+				},
+				'latest'
+			],
+			id: 1
+		}),
+		next: { revalidate: 600 }
+	})
+	if (!susdeBacking4Response.ok) {
+		console.error(
+			'Error fetching susdeBacking4',
+			susdeBacking4Response.status,
+			susdeBacking4Response.statusText
+		)
+		return {}
+	}
+	const susde4Balance = BigInt((await susdeBacking4Response.json()).result) / BigInt(10 ** 18)
+
+	const susdeBalance = susde1Balance + susde3Balance + susde4Balance;
 	const susdePrice = await fetch(
 		'https://api.coingecko.com/api/v3/simple/price?ids=ethena-staked-usde&vs_currencies=usd',
 		{
@@ -276,7 +315,6 @@ async function getData() {
 		}),
 		next: { revalidate: 600 }
 	})
-
 	if (!susdeUnstaking1Response.ok) {
 		console.error(
 			'Error fetching susdeUnstakingResponse',
@@ -319,7 +357,6 @@ async function getData() {
 		}),
 		next: { revalidate: 600 }
 	})
-
 	if (!susdeUnstaking3Response.ok) {
 		console.error(
 			'Error fetching susdeUnstaking3Response',
@@ -339,10 +376,52 @@ async function getData() {
 		return {}
 	}
 
+	let usdeUnstaking4Balance = 0
+	const paddedAddress4 = ETHENA_BACKING_ACCOUNT_4.toLowerCase()
+		.replace('0x', '')
+		.padStart(64, '0')
+	const susdeUnstaking4Response = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			jsonrpc: '2.0',
+			method: 'eth_call',
+			params: [
+				{
+					to: ETHENA_SUSDE_TOKEN_CONTRACT,
+					data: `${methodId}${paddedAddress4}`
+				},
+				'latest'
+			],
+			id: 4
+		}),
+		next: { revalidate: 600 }
+	})
+	if (!susdeUnstaking4Response.ok) {
+		console.error(
+			'Error fetching susdeUnstaking4Response',
+			susdeUnstaking4Response.status,
+			susdeUnstaking4Response.statusText
+		)
+		return {}
+	}
+	const response4Json = await susdeUnstaking4Response.json()
+	const result4 = response4Json.result
+	if (result4) {
+		const cooldownEndDate = new Date(Number(hexToNumberString(result4.slice(0, 66))) * 1000)
+		const underlyingAmount = hexToNumberString('0x' + result4.slice(66))
+		usdeUnstaking4Balance = Number(underlyingAmount) / 10 ** 18
+	} else {
+		console.error('Error fetching cooldown4 amount', response4Json)
+		return {}
+	}
+
 	const susdeValue = susdePriceData['ethena-staked-usde'].usd * Number(susdeBalance)
 	const usdeValue = usdePriceData['ethena-usde'].usd * Number(usdeBalance)
 	const usdtValue = usdtPriceData['tether'].usd * Number(usdtBalance)
-	const usdeUnstakingValue = usdePriceData['ethena-usde'].usd * (usdeUnstaking1Balance + usdeUnstaking3Balance)
+	const usdeUnstakingValue = usdePriceData['ethena-usde'].usd * (usdeUnstaking1Balance + usdeUnstaking3Balance + usdeUnstaking4Balance)
 	const backingUSDValue = susdeValue + usdeValue + usdeUnstakingValue + usdtValue
 	console.group('Backing USD Value Details');
 	console.log('susdeValue:', susdeValue);
