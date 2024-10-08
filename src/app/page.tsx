@@ -12,6 +12,7 @@ import {
 	ETHENA_BACKING_ACCOUNT_2,
 	ETHENA_BACKING_ACCOUNT_3,
 	ETHENA_BACKING_ACCOUNT_4,
+	ETHENA_BACKING_ACCOUNT_5,
 } from '@/lib/constants'
 import { MagicEdenBamkData, NusdRuneData } from '@/types'
 import { RuneNameHeading } from '@/components/ui/RuneNameHeading'
@@ -121,7 +122,17 @@ async function getData() {
 		return {}
 	}
 	const usdeBacking4Amount = BigInt((await usdeBacking4Response.json()).result) / BigInt(10 ** 18)
-	const usdeBalance = usdeBackingAmount + usdeBacking2Amount + usdeBacking3Amount + usdeBacking4Amount
+	const usdeBacking5Response = await getErc20Balance(ETHENA_BACKING_ACCOUNT_5, USDE_CONTRACT_ADDRESS_MAINNET)
+	if (!usdeBacking5Response.ok) {
+		console.error(
+			'Error fetching usdeBacking5',
+			usdeBacking5Response.status,
+			usdeBacking5Response.statusText
+		)
+		return {}
+	}
+	const usdeBacking5Amount = BigInt((await usdeBacking4Response.json()).result) / BigInt(10 ** 18)
+	const usdeBalance = usdeBackingAmount + usdeBacking2Amount + usdeBacking3Amount + usdeBacking4Amount + usdeBacking5Amount
 	const usdePrice = await fetch(
 		'https://api.coingecko.com/api/v3/simple/price?ids=ethena-usde&vs_currencies=usd',
 		{
@@ -269,7 +280,36 @@ async function getData() {
 	}
 	const susde4Balance = BigInt((await susdeBacking4Response.json()).result) / BigInt(10 ** 18)
 
-	const susdeBalance = susde1Balance + susde3Balance + susde4Balance;
+	const susdeBacking5Response = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			jsonrpc: '2.0',
+			method: 'eth_call',
+			params: [
+				{
+					to: ETHENA_SUSDE_TOKEN_CONTRACT,
+					data: erc20BalanceOfMethodId + ETHENA_BACKING_ACCOUNT_5.substring(2)
+				},
+				'latest'
+			],
+			id: 5
+		}),
+		next: { revalidate: 600 }
+	})
+	if (!susdeBacking5Response.ok) {
+		console.error(
+			'Error fetching susdeBacking5',
+			susdeBacking5Response.status,
+			susdeBacking5Response.statusText
+		)
+		return {}
+	}
+	const susde5Balance = BigInt((await susdeBacking5Response.json()).result) / BigInt(10 ** 18)
+
+	const susdeBalance = susde1Balance + susde3Balance + susde4Balance + susde5Balance;
 	const susdePrice = await fetch(
 		'https://api.coingecko.com/api/v3/simple/price?ids=ethena-staked-usde&vs_currencies=usd',
 		{
@@ -418,10 +458,52 @@ async function getData() {
 		return {}
 	}
 
+	let usdeUnstaking5Balance = 0
+	const paddedAddress5 = ETHENA_BACKING_ACCOUNT_5.toLowerCase()
+		.replace('0x', '')
+		.padStart(64, '0')
+	const susdeUnstaking5Response = await fetch(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			jsonrpc: '2.0',
+			method: 'eth_call',
+			params: [
+				{
+					to: ETHENA_SUSDE_TOKEN_CONTRACT,
+					data: `${methodId}${paddedAddress5}`
+				},
+				'latest'
+			],
+			id: 5
+		}),
+		next: { revalidate: 600 }
+	})
+	if (!susdeUnstaking5Response.ok) {
+		console.error(
+			'Error fetching susdeUnstaking5Response',
+			susdeUnstaking5Response.status,
+			susdeUnstaking5Response.statusText
+		)
+		return {}
+	}
+	const response5Json = await susdeUnstaking5Response.json()
+	const result5 = response5Json.result
+	if (result5) {
+		const cooldownEndDate = new Date(Number(hexToNumberString(result5.slice(0, 66))) * 1000)
+		const underlyingAmount = hexToNumberString('0x' + result5.slice(66))
+		usdeUnstaking5Balance = Number(underlyingAmount) / 10 ** 18
+	} else {
+		console.error('Error fetching cooldown5 amount', response5Json)
+		return {}
+	}
+
 	const susdeValue = susdePriceData['ethena-staked-usde'].usd * Number(susdeBalance)
 	const usdeValue = usdePriceData['ethena-usde'].usd * Number(usdeBalance)
 	const usdtValue = usdtPriceData['tether'].usd * Number(usdtBalance)
-	const usdeUnstakingValue = usdePriceData['ethena-usde'].usd * (usdeUnstaking1Balance + usdeUnstaking3Balance + usdeUnstaking4Balance)
+	const usdeUnstakingValue = usdePriceData['ethena-usde'].usd * (usdeUnstaking1Balance + usdeUnstaking3Balance + usdeUnstaking4Balance + usdeUnstaking5Balance)
 	const backingUSDValue = susdeValue + usdeValue + usdeUnstakingValue + usdtValue
 	console.group('Backing USD Value Details');
 	console.log('susdeValue:', susdeValue);
