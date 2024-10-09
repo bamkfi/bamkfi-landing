@@ -131,7 +131,7 @@ async function getData() {
 		)
 		return {}
 	}
-	const usdeBacking5Amount = BigInt((await usdeBacking4Response.json()).result) / BigInt(10 ** 18)
+	const usdeBacking5Amount = BigInt((await usdeBacking5Response.json()).result) / BigInt(10 ** 18)
 	const usdeBalance = usdeBackingAmount + usdeBacking2Amount + usdeBacking3Amount + usdeBacking4Amount + usdeBacking5Amount
 	const usdePrice = await fetch(
 		'https://api.coingecko.com/api/v3/simple/price?ids=ethena-usde&vs_currencies=usd',
