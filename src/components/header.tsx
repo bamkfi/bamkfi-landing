@@ -10,7 +10,7 @@ import { nunito } from './ui/fonts'
 import { Button } from './ui/button'
 import {MobileNavigation} from './navigation/navigation'
 
-export default function Header(data: { apy: number | undefined }) {
+export default function Header(data: { apy: number | undefined | null }) {
 	const links = [
 		{
 			name: 'Swap',
