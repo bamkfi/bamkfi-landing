@@ -561,36 +561,43 @@ async function getData() {
 	}
 	data.btcPriceData = await btcPrice.json()
 
-	const nusdCirculationReq = await fetch('https://calhounjohn.com/balances/getCirculationByBlock', {
-		headers: {
-			Authorization: `Bearer big-bamker-password`
-		},
-		next: {
-			revalidate: 600
-		}
-	})
-	if (!nusdCirculationReq.ok) {
-		console.error(
-			'Error fetching NUSD circulation',
-			nusdCirculationReq.status,
-			nusdCirculationReq.statusText
-		)
-		return data;
-	}
-	try {
-		const nusdCirculationData = (await nusdCirculationReq.json()) as { circulation: number }
-		if (nusdCirculationData?.circulation) {
-			data.tvl = nusdCirculationData.circulation
-		}
-	} catch (err) {
-		return data;
-	}
-
-	if (data.magicEdenBamkData && data.btcPriceData && data.tvl) {
+	// FIXME: USING RESERVES AS ESTIMATE OF TVL 
+	if (data.magicEdenBamkData && data.btcPriceData && data.backingUSDValue) {
 		const usdPricePerBamk =
 			(Number(data.magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) * data.btcPriceData.bitcoin.usd
-		data.apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / data.tvl
+		data.apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / data.backingUSDValue
 	}
+
+	// const nusdCirculationReq = await fetch('https://calhounjohn.com/balances/getCirculationByBlock', {
+	// 	headers: {
+	// 		Authorization: `Bearer big-bamker-password`
+	// 	},
+	// 	next: {
+	// 		revalidate: 600
+	// 	}
+	// })
+	// if (!nusdCirculationReq.ok) {
+	// 	console.error(
+	// 		'Error fetching NUSD circulation',
+	// 		nusdCirculationReq.status,
+	// 		nusdCirculationReq.statusText
+	// 	)
+	// 	return data;
+	// }
+	// try {
+	// 	const nusdCirculationData = (await nusdCirculationReq.json()) as { circulation: number }
+	// 	if (nusdCirculationData?.circulation) {
+	// 		data.tvl = nusdCirculationData.circulation
+	// 	}
+	// } catch (err) {
+	// 	return data;
+	// }
+
+	// if (data.magicEdenBamkData && data.btcPriceData && data.tvl) {
+	// 	const usdPricePerBamk =
+	// 		(Number(data.magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) * data.btcPriceData.bitcoin.usd
+	// 	data.apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / data.tvl
+	// }
 
 	return data;
 }
