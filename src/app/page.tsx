@@ -561,43 +561,36 @@ async function getData() {
 	}
 	data.btcPriceData = await btcPrice.json()
 
-	// FIXME: USING RESERVES AS ESTIMATE OF TVL 
-	if (data.magicEdenBamkData && data.btcPriceData && data.backingUSDValue) {
-		const usdPricePerBamk =
-			(Number(data.magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) * data.btcPriceData.bitcoin.usd
-		data.apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / data.backingUSDValue
+	const nusdCirculationReq = await fetch('https://calhounjohn.com/balances/getCirculationByBlock', {
+		headers: {
+			Authorization: `Bearer big-bamker-password`
+		},
+		next: {
+			revalidate: 600
+		}
+	})
+	if (!nusdCirculationReq.ok) {
+		console.error(
+			'Error fetching NUSD circulation',
+			nusdCirculationReq.status,
+			nusdCirculationReq.statusText
+		)
+		return data;
+	}
+	try {
+		const nusdCirculationData = (await nusdCirculationReq.json()) as { circulation: number }
+		if (nusdCirculationData?.circulation) {
+			data.tvl = nusdCirculationData.circulation
+		}
+	} catch (err) {
+		return data;
 	}
 
-	// const nusdCirculationReq = await fetch('https://calhounjohn.com/balances/getCirculationByBlock', {
-	// 	headers: {
-	// 		Authorization: `Bearer big-bamker-password`
-	// 	},
-	// 	next: {
-	// 		revalidate: 600
-	// 	}
-	// })
-	// if (!nusdCirculationReq.ok) {
-	// 	console.error(
-	// 		'Error fetching NUSD circulation',
-	// 		nusdCirculationReq.status,
-	// 		nusdCirculationReq.statusText
-	// 	)
-	// 	return data;
-	// }
-	// try {
-	// 	const nusdCirculationData = (await nusdCirculationReq.json()) as { circulation: number }
-	// 	if (nusdCirculationData?.circulation) {
-	// 		data.tvl = nusdCirculationData.circulation
-	// 	}
-	// } catch (err) {
-	// 	return data;
-	// }
-
-	// if (data.magicEdenBamkData && data.btcPriceData && data.tvl) {
-	// 	const usdPricePerBamk =
-	// 		(Number(data.magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) * data.btcPriceData.bitcoin.usd
-	// 	data.apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / data.tvl
-	// }
+	if (data.magicEdenBamkData && data.btcPriceData && data.tvl) {
+		const usdPricePerBamk =
+			(Number(data.magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) * data.btcPriceData.bitcoin.usd
+		data.apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / data.tvl
+	}
 
 	return data;
 }
@@ -672,7 +665,7 @@ export default async function Home() {
 								) : null}
 								{data.backingUSDValue && data.backingUSDValue > 0 ? (
 									<a
-										href={`https://www.oklink.com/eth/token/${ETHENA_SUSDE_TOKEN_CONTRACT}?address=${ETHENA_BACKING_ACCOUNT}`}
+										href={`https://docs.bamk.fi/bamkfi/resources/reserves`}
 										className="cursor-pointer"
 										target="_blank"
 										rel="noopener noreferrer"
