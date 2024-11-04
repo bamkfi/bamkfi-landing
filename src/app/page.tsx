@@ -586,10 +586,10 @@ async function getData() {
 		return data;
 	}
 
-	if (data.magicEdenBamkData && data.btcPriceData && data.tvl) {
+	if (data.magicEdenBamkData && data.btcPriceData && (data.tvl ?? data.backingUSDValue)) {
 		const usdPricePerBamk =
 			(Number(data.magicEdenBamkData.floorUnitPrice.formatted) / 100_000_000) * data.btcPriceData.bitcoin.usd
-		data.apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / data.tvl
+		data.apy = (usdPricePerBamk * SEASON_1_BAMK_PER_BLOCK * 144 * 365) / (data.tvl ?? data.backingUSDValue)
 	}
 
 	return data;
