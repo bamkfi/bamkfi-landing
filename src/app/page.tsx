@@ -13,12 +13,15 @@ import {
 	ETHENA_BACKING_ACCOUNT_3,
 	ETHENA_BACKING_ACCOUNT_4,
 	ETHENA_BACKING_ACCOUNT_5,
+	BTC_BACKING_ACCOUNT_1,
+	BTC_BACKING_ACCOUNT_2,
 } from '@/lib/constants'
 import { MagicEdenBamkData, NusdRuneData } from '@/types'
 import { RuneNameHeading } from '@/components/ui/RuneNameHeading'
 import UsdeIcon from '@/icons/USDe'
 import NusdIcon from '@/icons/nusd'
 import Header from '@/components/header'
+import BtcIcon from '@/icons/btc'
 
 const INFURA_API_KEY = process.env.INFURA_API_KEY
 const MAGIC_EDEN_API_KEY = process.env.MAGIC_EDEN_API_KEY
@@ -27,6 +30,7 @@ type FetchedData = {
 	nusdRuneData: NusdRuneData | null,
 	magicEdenBamkData: MagicEdenBamkData | null,
 	backingUSDValue: number | null,
+	backingBTCValue: number | null,
 	btcPriceData: {
 		bitcoin: {
 			usd: number
@@ -41,6 +45,7 @@ async function getData() {
 		nusdRuneData: null,
 		magicEdenBamkData: null,
 		backingUSDValue: null,
+		backingBTCValue: null,
 		btcPriceData: null,
 		tvl: null,
 		apy: null,
@@ -561,6 +566,27 @@ async function getData() {
 	}
 	data.btcPriceData = await btcPrice.json()
 
+	async function getBtcBalance(address: string) {
+		const response = await fetch(
+			`https://blockchain.info/q/addressbalance/${address}`,
+			{
+				method: 'GET',
+				next: { revalidate: 600 }
+			}
+		)
+		if (!response.ok) {
+		return null
+		}
+		const sats = await response.text()
+		return parseInt(sats)
+	}
+	const btcBackingAccount1Balance = await getBtcBalance(BTC_BACKING_ACCOUNT_1)
+	const btcBackingAccount2Balance = await getBtcBalance(BTC_BACKING_ACCOUNT_2)
+	const btcBackingAccountTotalBalance = (btcBackingAccount1Balance ?? 0) + (btcBackingAccount2Balance ?? 0)
+	if (data.btcPriceData?.bitcoin.usd) {
+		data.backingBTCValue = btcBackingAccountTotalBalance / 100_000_000 * data.btcPriceData.bitcoin.usd
+	}
+
 	const nusdCirculationReq = await fetch('https://calhounjohn.com/balances/getCirculationByBlock', {
 		headers: {
 			Authorization: `Bearer big-bamker-password`
@@ -606,7 +632,7 @@ export default async function Home() {
 					<div className="flex flex-col gap-4 md:ml-12">
 						<RuneNameHeading>BAMK•OF•NAKAMOTO•DOLLAR</RuneNameHeading>
 						{data?.magicEdenBamkData ? (
-							<div className="flex gap-2 flex-wrap -mt-2">
+							<div className="flex gap-2 flex-wrap -mt-2 max-w-screen-md">
 								<div
 									title="BAMK Price"
 									className="bg-primary/5 flex text-sm gap-2 px-4 rounded-md h-10 items-center w-max mt-1"
@@ -679,6 +705,27 @@ export default async function Home() {
 											<p className="text-primary font-bold">
 												$
 												{data.backingUSDValue.toLocaleString(undefined, {
+													maximumFractionDigits: 0
+												})}
+											</p>
+										</div>
+									</a>
+								) : null}
+								{data.backingBTCValue && data.backingBTCValue > 0 ? (
+									<a
+										href={`https://docs.bamk.fi/bamkfi/resources/reserves`}
+										className="cursor-pointer"
+										target="_blank"
+										rel="noopener noreferrer"
+										>
+										<div
+											className="bg-primary/5 flex text-sm gap-2 px-4 rounded-md h-10 items-center w-max mt-1"
+											>
+											<BtcIcon height={27} width={27} className="stroke-primary" />
+											<p>BTC Reserves</p>
+											<p className="text-primary font-bold">
+												$
+												{data.backingBTCValue.toLocaleString(undefined, {
 													maximumFractionDigits: 0
 												})}
 											</p>
